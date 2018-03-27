@@ -1,39 +1,51 @@
-var readSelection = window.getSelection();
-var endingFocusNode = readSelection.focusNode.textContent;
+var readButton = document.querySelector('.read-button');
 
-// var start = readSelection.extentNode;
-// var start = readSelection.anchorNode;
-var start = readSelection.extentNode.parentNode;
-
-var strArray = start.textContent.split(' ');
-strArray;
-
-var readSpan = ['<span style="color: green">', '</span>'];
-var joinedArr = [];
-var arrToStr;
-
-strArray.forEach(function(word, i) {
-  setTimeout(() => {
-    readSpan.pop();
-    readSpan.push(word);
-    readSpan.push('</span>');
-    joinedArr = [...readSpan, ...strArray.slice(++i)];
-    strToArr = joinedArr.join(' ');
-    start.innerHTML = strToArr;
-  }, 200 * i);
+readButton.addEventListener('click', function() {
+  chrome.tabs.executeScript({
+    code: `
+      console.log(window.getSelection())
+    `
+  });
 });
 
-// old code -----------------------
+var readSelection = window.getSelection();
 
-// var backtogether = strArray.reduce(function(acc, word) {
-//   acc += `${word} `;
-//   return acc;
-// }, '<span style="color: red">');
+var endingNode = readSelection.focusNode.parentNode;
 
-// backtogether;
+var startingNode = readSelection.anchorNode.parentNode;
 
-// for (let i = 0; i < strArray.length; i++) {
-//   setTimeout(() => {
-//     return strArray[i];
-//   }, 1000);
-// }
+var currentNode = startingNode || null;
+
+var count = 0;
+
+function followText(node) {
+  var strArray = node.innerText.split(' ');
+
+  var readSpan = [
+    '<span style="color: dimgrey;text-decoration: underline;">',
+    '</span>'
+  ];
+  var combineArrays = [];
+  var arrToStr;
+
+  strArray.forEach(function(word, i) {
+    count++;
+    setTimeout(() => {
+      readSpan.pop();
+      readSpan.push(word);
+      readSpan.push('</span>');
+      combineArrays = [...readSpan, ...strArray.slice(i + 1)];
+      strToArr = combineArrays.join(' ');
+      node.innerHTML = strToArr;
+    }, 200 * count);
+  });
+  currentNode = node.nextElementSibling;
+}
+
+while (currentNode !== endingNode) {
+  followText(currentNode);
+}
+
+followText(currentNode);
+
+readSelection.empty();
