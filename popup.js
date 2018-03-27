@@ -5,5 +5,3 @@
 //     console.log(response.farewell);
 //   });
 // });
-
-function
